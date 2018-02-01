@@ -20,14 +20,14 @@ by hand explicitly.
 This tensor package is a testing ground for a better tensor implementation in the
 numerical general relativity code [GRChombo](https://github.com/GRChombo/GRChombo).
 
-##Implementation note
+## Implementation note
 A rank-R tensor is implemented recursively as an array of rank-(R-1) tensors.
 Lazy evaluation is achieved using expression templates.
 Currently, operations which change the rank of a tensor, such as contracting two
-indices of a tensor with rank greater than 2, are not done lazily but this is
+indices of a tensor with rank greater than 2, are not done lazily; this is
 work in progress.
 
-##Prerequisites and usage examples
+## Prerequisites and usage examples
 Tensoralgebra works only with C++14 and has been tested with gcc, clang, and
 icc. Tensoralgebra is header-only so all that is needed is to include `Tensor.hpp`
 and `TensorAlgebra.hpp` (for tensor operations like the dot product).
@@ -72,7 +72,7 @@ or the dot product (with or without metric):
   std::cout << "Dot: " << tensoralgebra::dot(vector, vector) << ".\n";
 ```
 
-##Tests
+## Tests
 The folder `Tests` contains several tests which ensure that
 * the operations are correct (even for more complicated expressions with nested
   functions etc.)
@@ -82,10 +82,12 @@ The folder `Tests` contains several tests which ensure that
   row major order. E.g. for a rank-2 expression [0][0] should be evaluated
 completely before starting with [0][1].
 
-##Contributing
+## Contributing
+I welcome all feedback, comments, criticism, feature requests, contributions,
+and pull requests.
 
 
-##License
+## License
 Since tensoralgebra is a testing ground for
 [GRChombo](https://github.com/GRChombo/GRChombo) it is released under the same
 license (3-clause BSD).
