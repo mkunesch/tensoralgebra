@@ -1,0 +1,5 @@
+*.ex
+*.swp
+*.dSYM
+old/*
+run_clang_format
