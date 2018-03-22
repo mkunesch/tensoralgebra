@@ -1,5 +1,7 @@
-#pragma once
+#ifndef _TENSORALGEBRA_TENSOREXPRESSION_HPP
+#define _TENSORALGEBRA_TENSOREXPRESSION_HPP
 
+#include "IndexUtilities.hpp"
 #include "TypeChecks.hpp"
 #include <cmath>
 #include <cstddef>
@@ -8,103 +10,92 @@
 
 namespace tensoralgebra {
 
-template <typename T, size_t N> class TensorExpression;
-
-/// Compile time check whether a given type is a tensor expression
-/** Member "value" is false if the given type is not a tensor expression */
-template <typename T, typename Helper = void>
-struct is_tensor_expression : std::false_type {};
-
-template <typename T>
-struct is_tensor_expression<
-    T, make_void<decltype(std::remove_reference_t<T>::size())>> {
-  using T_stripped = std::decay_t<T>;
-  static const bool value =
-      std::is_base_of<TensorExpression<T_stripped, T_stripped::size()>,
-                      T_stripped>::value;
-};
-// End: compile time check whether a given type is a tensor expression
+template <typename T> class SquareBracket;
 
 /// Base class for everything that is a tensor expression, from just a
 /// tensor itself to complicated unevaluated operations of tensors
-template <typename T, size_t N> class TensorExpression {
+template <size_t Rank, typename T, size_t Size> class TensorExpression {
 protected:
-  // Protected since creating exressions outside derived classes is dangerous.
+  // Protected since creating expressions outside derived classes is dangerous.
   TensorExpression() = default;
-  TensorExpression(const TensorExpression<T, N> &) = default;
+  TensorExpression(const TensorExpression &) = default;
+  TensorExpression(TensorExpression &&) noexcept = default;
+  TensorExpression &operator=(const TensorExpression &) = default;
+  TensorExpression &operator=(TensorExpression &&) noexcept = default;
+  ~TensorExpression() = default;
 
 public:
-  auto operator[](size_t i) const { return static_cast<const T &>(*this)[i]; }
-  static constexpr size_t size() { return N; }
+  auto operator[](size_t i) const {
+    return SquareBracket<T>(static_cast<const T &>(*this), i);
+  }
+  static constexpr size_t size() { return Size; }
+  static constexpr size_t rank() { return Rank; }
+  using TensorExpressionType = T;
+
+  template <typename... Indices> decltype(auto) eval(Indices... is) const {
+    return static_cast<const T &>(*this).eval(is...);
+  }
 };
 
-// Define the expression templates corresponding to various operations:
-#define define_binary_expression_template(Name, expression)                    \
-  /* Expression template for the operation between a tensor and an arbitrary   \
-   * type. The members are either lvalues or lvalue references depending on    \
-   * whether the class is initialised with lvalues or rvalues. */              \
-  template <typename TTensor, typename TAny>                                   \
-  class Name                                                                   \
-      : public TensorExpression<Name<TTensor, TAny>,                           \
-                                std::remove_reference_t<TTensor>::size()> {    \
-    const TTensor tensor;                                                      \
-    const TAny any;                                                            \
-                                                                               \
-  public:                                                                      \
-    Name(TTensor &&tensor, TAny &&any)                                         \
-        : tensor(std::forward<TTensor>(tensor)),                               \
-          any(std::forward<TAny>(any)) {}                                      \
-                                                                               \
-    auto operator[](size_t i) const { return expression; }                     \
-  };
+template <typename T, size_t Size> class TensorExpression<1, T, Size> {
+protected:
+  // Protected since creating expressions outside derived classes is dangerous.
+  TensorExpression() = default;
+  TensorExpression(const TensorExpression &) = default;
+  TensorExpression(TensorExpression &&) noexcept = default;
+  TensorExpression &operator=(const TensorExpression &) = default;
+  TensorExpression &operator=(TensorExpression &&) noexcept = default;
+  ~TensorExpression() = default;
 
-#define define_unary_expression_template(Name, expression)                     \
-  /* Expression template for functions of tensors. The member variable is      \
-   * either an lvalue or an lvalue reference depending on whether the class    \
-   * is initialised with an lvalue or an rvalue.*/                             \
-  template <typename TTensor>                                                  \
-  class Name                                                                   \
-      : public TensorExpression<Name<TTensor>,                                 \
-                                std::remove_reference_t<TTensor>::size()> {    \
-    const TTensor tensor;                                                      \
-                                                                               \
-  public:                                                                      \
-    Name(TTensor &&t) : tensor(std::forward<TTensor>(t)) {}                    \
-                                                                               \
-    auto operator[](size_t i) const { return expression; };                    \
-  };
+public:
+  auto operator[](size_t i) const { return eval(i); }
+  static constexpr size_t size() { return Size; }
+  static constexpr size_t rank() { return 1; }
+  using TensorExpressionType = T;
 
-#define define_binary_templates(OP, OPName)                                    \
-  /*Define the expression templates needed for the binary operations*/         \
-  define_binary_expression_template(OPName##ScalarRight, tensor[i] OP any);    \
-  define_binary_expression_template(OPName##Tensor, tensor[i] OP any[i]);
+  decltype(auto) eval(size_t i) const {
+    return static_cast<const T &>(*this).eval(i);
+  }
+};
 
-#define define_unary_template(function, Name)                                  \
-  define_unary_expression_template(Name, function(tensor[i]));
+// Rank zero tensor expressions are forbidden
+template <typename T, size_t Size> class TensorExpression<0, T, Size>;
 
-define_binary_templates(+, Sum);
-define_binary_templates(-, Difference);
-define_binary_templates(*, Product);
-define_binary_templates(/, Quotient);
+// Expression template corresponding to the [] operator. This remains
+// unevaluated until enough indices (given by the rank) are supplied.
+template <typename T>
+class SquareBracket
+    : public TensorExpression<T::rank() - 1, SquareBracket<T>, T::size()> {
+  const T &t;
+  size_t i;
 
-define_unary_template(exp, Exp);
-define_unary_template(log, Log);
-define_unary_template(log10, Log10);
-define_unary_template(sqrt, Sqrt);
-define_unary_template(sin, Sin);
-define_unary_template(cos, Cos);
-define_unary_template(tan, Tan);
-define_unary_template(asin, Asin);
-define_unary_template(acos, Acos);
-define_unary_template(atan, Atan);
-define_unary_template(sinh, Sinh);
-define_unary_template(cosh, Cosh);
-define_unary_template(tanh, Tanh);
-using std::abs; // Prevents bug whereby C's abs(int) is called
-define_unary_template(abs, Abs);
+public:
+  SquareBracket(const T &tensor, size_t i) : t(tensor), i(i) {}
 
-#undef define_binary_expression_template
-#undef define_unary_expression_template
-#undef define_binary_templates
-#undef define_unary_template
+  template <typename... Indices> auto eval(Indices... js) const {
+    return t.eval(i, js...);
+  }
+};
+
+/// Operator == for tensor expressions.
+/// The result is immediately evaluated.
+template <size_t Rank, typename T1, typename T2, size_t Size>
+bool operator==(const TensorExpression<Rank, T1, Size> &t1,
+                const TensorExpression<Rank, T2, Size> &t2) {
+  bool are_equal = true;
+  for (size_t i = 0; i < Size; ++i) {
+    are_equal &= (t1[i] == t2[i]);
+  }
+  return are_equal;
+}
+
+/// Operator != for tensor expressions.
+/// The result is immediately evaluated.
+template <size_t Rank, typename T1, typename T2, size_t Size>
+bool operator!=(const TensorExpression<Rank, T1, Size> &t1,
+                const TensorExpression<Rank, T2, Size> &t2) {
+  return !(t1 == t2);
+}
 } // namespace tensoralgebra
+
+#endif

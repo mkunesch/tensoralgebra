@@ -16,21 +16,21 @@ functions for a specific dimension.
   names reflect whether indices are up or down, the package does not convert the
 index type automatically. In my opinion it is much easier and clearer to do this
 by hand explicitly.
+* The implementation is optimised for small sizes (i.e. for a 4-vector or a 4x4
+  matrix, not for a vector with 100,000 components) and small datatypes (e.g.
+for Tensor<3, double> or Tensor<3, int>).
 
 This tensor package is a testing ground for a better tensor implementation in the
 numerical general relativity code [GRChombo](https://github.com/GRChombo/GRChombo).
 
-## Implementation note
+##Implementation note
 A rank-R tensor is implemented recursively as an array of rank-(R-1) tensors.
 Lazy evaluation is achieved using expression templates.
-Currently, operations which change the rank of a tensor, such as contracting two
-indices of a tensor with rank greater than 2, are not done lazily; this is
-work in progress.
 
 ## Prerequisites and usage examples
 Tensoralgebra works only with C++14 and has been tested with gcc, clang, and
 icc. Tensoralgebra is header-only so all that is needed is to include `Tensor.hpp`
-and `TensorAlgebra.hpp` (for tensor operations like the dot product).
+and `TensorOperations.hpp` (for tensor operations like the dot product).
 
 Initialisation of a tensor works with nested initialiser lists:
 ```
@@ -72,7 +72,7 @@ or the dot product (with or without metric):
   std::cout << "Dot: " << tensoralgebra::dot(vector, vector) << ".\n";
 ```
 
-## Tests
+##Tests
 The folder `Tests` contains several tests which ensure that
 * the operations are correct (even for more complicated expressions with nested
   functions etc.)
@@ -82,12 +82,28 @@ The folder `Tests` contains several tests which ensure that
   row major order. E.g. for a rank-2 expression [0][0] should be evaluated
 completely before starting with [0][1].
 
-## Contributing
-I welcome all feedback, comments, criticism, feature requests, contributions,
-and pull requests.
+##Contributing
 
 
-## License
+##License
 Since tensoralgebra is a testing ground for
 [GRChombo](https://github.com/GRChombo/GRChombo) it is released under the same
 license (3-clause BSD).
+
+## Acknowledgements
+Google Benchmark
+Godbolt
+
+
+##Performance
+Run on (4 X 3300 MHz CPU s)
+2018-03-21 19:28:31
+------------------------------------------------------------------------
+Benchmark                                 Time           CPU Iterations
+------------------------------------------------------------------------
+run_naive/repeats:10_mean              1162 ns       1152 ns     587224
+run_naive/repeats:10_stddev              18 ns         12 ns          0
+run_expression/repeats:10_mean          231 ns        230 ns    3088285
+run_expression/repeats:10_stddev          4 ns          4 ns          0
+run_loop/repeats:10_mean                233 ns        231 ns    3064986
+run_loop/repeats:10_stddev                6 ns          6 ns          0
