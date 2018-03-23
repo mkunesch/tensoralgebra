@@ -1,6 +1,8 @@
-#pragma once
+#ifndef _TENSORALGEBRA_TESTS_SUMEVALUATIONORDERTEST_HPP
+#define _TENSORALGEBRA_TESTS_SUMEVALUATIONORDERTEST_HPP
 
 #include "Tensor.hpp"
+#include "TestingUtilities.hpp"
 #include <vector>
 
 // This test ensures that arithmetic expressions are evaluated lazily and in the
@@ -41,20 +43,20 @@ AdditionDetector operator+(AdditionDetector sum1, AdditionDetector sum2) {
   return sum1;
 }
 
-int test_sum_evaluation_order() {
-  tensoralgebra::Tensor<2, AdditionDetector, 2> test;
+bool test_sum_evaluation_order() {
   std::vector<size_t> operation_tracker;
-  test[0][0] = AdditionDetector(0., 0, &operation_tracker);
-  test[0][1] = AdditionDetector(1., 1, &operation_tracker);
-  test[1][0] = AdditionDetector(2., 2, &operation_tracker);
-  test[1][1] = AdditionDetector(3., 3, &operation_tracker);
+  tensoralgebra::Tensor<2, AdditionDetector, 2> test = {
+      {AdditionDetector(0., 0, &operation_tracker),
+       AdditionDetector(1., 1, &operation_tracker)},
+      {AdditionDetector(2., 2, &operation_tracker),
+       AdditionDetector(3., 3, &operation_tracker)}};
 
   test += test + test + test;
 
   // Correct order is all the [0][0] = 0 first, then [0][1] = 1, etc.
   std::vector<size_t> correct_order = {0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3};
   const bool failed = (operation_tracker != correct_order);
-  std::cout << "Sum evaluation order test passed: " << !failed << std::endl;
+  print_result("Sum evaluation order test", !failed);
 
   if (failed) {
     std::cout << "The evaluation order was:\n";
@@ -65,3 +67,5 @@ int test_sum_evaluation_order() {
 
   return failed;
 }
+
+#endif
