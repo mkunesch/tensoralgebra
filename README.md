@@ -1,7 +1,9 @@
 # tensoralgebra
 
-This package provides an implementation of a tensor in physics and differential
+Tensoralgebra provides an implementation of a tensor in physics and differential
 geometry: a multidimensional array of the same size in all directions.
+It is a fesibility study for a better tensor implementation in the
+numerical general relativity code [GRChombo](https://github.com/GRChombo/GRChombo).
 
 The main features of tensoralgebra:
 * Operations involving tensors are evaluated lazily to avoid unnecessary temporary tensors.
@@ -13,22 +15,19 @@ functions for a specific dimension.
 * The most important tensor operations are included: e.g. trace, dot,
   make_trace_free, ...
 * While functions for lowering and raising indices are implemented and parameter
-  names reflect whether indices are up or down, the package does not convert the
+  names reflect whether indices are up or down, the tensoralgebra does not convert the
 index type automatically. In my opinion it is much easier and clearer to do this
 by hand explicitly.
 * The implementation is optimised for small sizes (i.e. for a 4-vector or a 4x4
   matrix, not for a vector with 100,000 components) and small datatypes (e.g.
 for Tensor<3, double> or Tensor<3, int>).
 
-This tensor package is a testing ground for a better tensor implementation in the
-numerical general relativity code [GRChombo](https://github.com/GRChombo/GRChombo).
-
-##Implementation note
+## Implementation note
 A rank-R tensor is implemented recursively as an array of rank-(R-1) tensors.
 Lazy evaluation is achieved using expression templates.
 
 ## Prerequisites and usage examples
-Tensoralgebra works only with C++14 and has been tested with gcc, clang, and
+Tensoralgebra requires C++14 or higher and has been tested with gcc, clang, and
 icc. Tensoralgebra is header-only so all that is needed is to include `Tensor.hpp`
 and `TensorOperations.hpp` (for tensor operations like the dot product).
 
@@ -87,7 +86,7 @@ completely before starting with [0][1].
 
 ##License
 Since tensoralgebra is a testing ground for
-[GRChombo](https://github.com/GRChombo/GRChombo) it is released under the same
+[GRChombo](https://github.com/GRChombo/GRChombo), it is released under the same
 license (3-clause BSD).
 
 ## Acknowledgements
