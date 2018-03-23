@@ -1,0 +1,1 @@
+-O3 -std=c++14 -I../ -lbenchmark -lc++abi -fno-rtti -Wall -pedantic -Winline -lpthread
