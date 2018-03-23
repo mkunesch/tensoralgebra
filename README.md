@@ -15,7 +15,7 @@ functions for a specific dimension.
 * The most important tensor operations are included: e.g. trace, dot,
   make_trace_free, ...
 * While functions for lowering and raising indices are implemented and parameter
-  names reflect whether indices are up or down, the tensoralgebra does not convert the
+  names reflect whether indices are up or down, the package does not convert the
 index type automatically. In my opinion it is much easier and clearer to do this
 by hand explicitly.
 * The implementation is optimised for small sizes (i.e. for a 4-vector or a 4x4
@@ -27,8 +27,8 @@ A rank-R tensor is implemented recursively as an array of rank-(R-1) tensors.
 Lazy evaluation is achieved using expression templates.
 
 ## Prerequisites and usage examples
-Tensoralgebra requires C++14 or higher and has been tested with gcc, clang, and
-icc. Tensoralgebra is header-only so all that is needed is to include `Tensor.hpp`
+Tensoralgebra requires C++14 or higher and has been tested with gcc-7, clang-6, and
+icc-17. Some older compiler versions yield significantly worse performance. Tensoralgebra is header-only so all that is needed is to include `Tensor.hpp`
 and `TensorOperations.hpp` (for tensor operations like the dot product).
 
 Initialisation of a tensor works with nested initialiser lists:
@@ -50,14 +50,24 @@ Evaluation is done lazily. For example, the following is not evaluated:
   auto temp = 3 * tensor + 1 / exp(tensor) - sin(tensor);
 ```
 
-Expressions are evaluated e.g. when writing output:
+Expressions are evaluated e.g. when writing output
 ```
   std::cout << "Result of 3*tensor + 1/exp(tensor) - sin(tensor): " << temp << ".\n";
 ```
 
-Expressions are also evaluated when assigning to another tensor
+when assigning to another tensor
 ```
-  TwoTensor tensor1 = temp; // causes evaluation of temp
+  TwoTensor tensor1 = temp; // temp is evaluated, results are written into tensor1
+```
+
+when applying as many indices as given by the rank
+```
+  auto evaluated = tensor[0][0];
+```
+
+but not if the number of supplied indices is smaller than the rank
+```
+  auto unevaluated1 = tensor[0];
 ```
 
 Basic tensor operations for differential geometry are supported
@@ -66,12 +76,30 @@ e.g. the trace with respect to a given inverse metric
   std::cout << "Trace: " << tensoralgebra::trace(tensor1, inverse_metric) << ".\n";
 ```
 
-or the dot product (with or without metric):
+the outer product
 ```
-  std::cout << "Dot: " << tensoralgebra::dot(vector, vector) << ".\n";
+  std::cout << "Outer: " << tensoralgebra::outer(vector, vector) << std::endl;
 ```
 
-##Tests
+or the dot product (with or without metric)
+```
+  std::cout << "Dot: " << tensoralgebra::dot(vector, vector) << std::endl;
+  std::cout << "Dot: " << tensoralgebra::dot(tensor, inverse_metric)
+            << std::endl;
+```
+
+Tensors have an iterator for each dimension. This allows e.g. the use of
+range based for loops:
+```
+  double sum = 0.;
+  for (auto &row : tensor) {
+    for (auto &element : row) {
+      sum += element;
+    }
+  }
+```
+
+## Tests
 The folder `Tests` contains several tests which ensure that
 * the operations are correct (even for more complicated expressions with nested
   functions etc.)
@@ -79,30 +107,37 @@ The folder `Tests` contains several tests which ensure that
   it really is necessary and the full expression is known.
 * evaluation takes place in the right order, that is component by component in
   row major order. E.g. for a rank-2 expression [0][0] should be evaluated
-completely before starting with [0][1].
+  completely before starting with [0][1].
 
-##Contributing
+## Contributing
+I welcome all feedback, comments, criticism, feature requests, contributions,
+and pull requests.
 
-
-##License
+## License
 Since tensoralgebra is a testing ground for
 [GRChombo](https://github.com/GRChombo/GRChombo), it is released under the same
 license (3-clause BSD).
 
 ## Acknowledgements
-Google Benchmark
-Godbolt
+A huge thank you goes to Matt Godbolt for his [compiler explorer](https://godbolt.org).
 
+## Performance
+The Benchmark folder includes a benchmark which compares the runtime of a naive
+tensor implementation, an implementation using explicit loops, and the expression
+template implementation provided in this tensoralgebra package.
 
-##Performance
-Run on (4 X 3300 MHz CPU s)
+The example output below was obtained with clang-6 and shows that indeed
+expression templates can yield the same performance as an explicit loop
+implementation on a recent compiler.
+
+Run on (4 X 3300 MHz CPUs)
 2018-03-21 19:28:31
 ------------------------------------------------------------------------
 Benchmark                                 Time           CPU Iterations
 ------------------------------------------------------------------------
 run_naive/repeats:10_mean              1162 ns       1152 ns     587224
 run_naive/repeats:10_stddev              18 ns         12 ns          0
-run_expression/repeats:10_mean          231 ns        230 ns    3088285
-run_expression/repeats:10_stddev          4 ns          4 ns          0
 run_loop/repeats:10_mean                233 ns        231 ns    3064986
 run_loop/repeats:10_stddev                6 ns          6 ns          0
+run_expression/repeats:10_mean          231 ns        230 ns    3088285
+run_expression/repeats:10_stddev          4 ns          4 ns          0
