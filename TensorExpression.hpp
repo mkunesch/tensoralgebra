@@ -18,11 +18,6 @@ template <size_t Rank, typename T, size_t Size> class TensorExpression {
 protected:
   // Protected since creating expressions outside derived classes is dangerous.
   TensorExpression() = default;
-  TensorExpression(const TensorExpression &) = default;
-  TensorExpression(TensorExpression &&) noexcept = default;
-  TensorExpression &operator=(const TensorExpression &) = default;
-  TensorExpression &operator=(TensorExpression &&) noexcept = default;
-  ~TensorExpression() = default;
 
 public:
   auto operator[](size_t i) const {
@@ -41,11 +36,6 @@ template <typename T, size_t Size> class TensorExpression<1, T, Size> {
 protected:
   // Protected since creating expressions outside derived classes is dangerous.
   TensorExpression() = default;
-  TensorExpression(const TensorExpression &) = default;
-  TensorExpression(TensorExpression &&) noexcept = default;
-  TensorExpression &operator=(const TensorExpression &) = default;
-  TensorExpression &operator=(TensorExpression &&) noexcept = default;
-  ~TensorExpression() = default;
 
 public:
   auto operator[](size_t i) const { return eval(i); }

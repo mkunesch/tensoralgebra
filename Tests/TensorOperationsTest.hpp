@@ -15,24 +15,33 @@ bool test_dot() {
   // Note: since vectors are treated separately in the implementation of Dot, we
   // have to check several possible combinations of ranks.
 
-  // Test dot for a vector product
+  // Test dot for two vectors
   tensoralgebra::Tensor<1, double, 3> vector1 = {1., 2., 3.};
   tensoralgebra::Tensor<1, double, 3> vector2 = {3., 2., 1.};
 
   failed |= (dot(vector1, vector2) != 10);
 
-  // Test dot for a matrix product
+  // Test dot for two matrices
   tensoralgebra::Tensor<2, double, 2> tensor1 = {{1., 2.}, {3., 4.}};
   tensoralgebra::Tensor<2, double, 2> tensor2 = {{4., 3.}, {2., 1.}};
 
   tensoralgebra::Tensor<2, double, 2> correct_matrix = {{8., 5.}, {20., 13.}};
   failed |= (dot(tensor1, tensor2) != correct_matrix);
 
-  // Test dor for matrix-vector
+  // Test dot for a matrix and a vector
   tensoralgebra::Tensor<2, double, 3> tensor3 = {
       {1., 2., 3.}, {4., 5., 6.}, {7., 8., 9.}};
   tensoralgebra::Tensor<1, double, 3> correct_vector = {14., 32., 50.};
   failed |= (dot(tensor3, vector1) != correct_vector);
+
+  // Test dot for two matrices given a metric
+  tensoralgebra::Tensor<2, double, 2> tensor4 = {{1., 2.}, {3., 4.}};
+  tensoralgebra::Tensor<2, double, 2> tensor5 = {{4., 3.}, {2., 1.}};
+  tensoralgebra::Tensor<2, double, 2> metric = {{10., 11.}, {12., 13.}};
+
+  tensoralgebra::Tensor<2, double, 2> correct_matrix1 = {{210., 139.},
+                                                         {482., 319.}};
+  failed |= (dot(tensor4, tensor5, metric) != correct_matrix1);
 
   return failed;
 }

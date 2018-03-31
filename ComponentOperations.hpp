@@ -14,13 +14,16 @@ namespace tensoralgebra {
   /* Expression template for the operation between a tensor and an arbitrary   \
    * type. */                                                                  \
   template <typename TTensor, typename TAny>                                   \
-  class Name : public TensorExpression<TTensor::rank(), Name<TTensor, TAny>,   \
-                                       TTensor::size()> {                      \
-    const TTensor &tensor;                                                     \
-    const TAny &any;                                                           \
+  class Name : public TensorExpression<std::decay_t<TTensor>::rank(),          \
+                                       Name<TTensor, TAny>,                    \
+                                       std::decay_t<TTensor>::size()> {        \
+    TTensor tensor;                                                            \
+    TAny any;                                                                  \
                                                                                \
   public:                                                                      \
-    Name(const TTensor &tensor, const TAny &any) : tensor(tensor), any(any) {} \
+    Name(TTensor &&tensor, TAny &&any)                                         \
+        : tensor(std::forward<TTensor>(tensor)),                               \
+          any(std::forward<TAny>(any)) {}                                      \
                                                                                \
     template <typename... Indices> auto eval(Indices... js) const {            \
       return expression;                                                       \
@@ -30,12 +33,13 @@ namespace tensoralgebra {
 #define define_unary_expression_template(Name, expression)                     \
   /* Expression template for functions of tensors. */                          \
   template <typename TTensor>                                                  \
-  class Name : public TensorExpression<TTensor::rank(), Name<TTensor>,         \
-                                       TTensor::size()> {                      \
-    const TTensor &tensor;                                                     \
+  class Name                                                                   \
+      : public TensorExpression<std::decay_t<TTensor>::rank(), Name<TTensor>,  \
+                                std::decay_t<TTensor>::size()> {               \
+    TTensor tensor;                                                            \
                                                                                \
   public:                                                                      \
-    Name(const TTensor &t) : tensor(t) {}                                      \
+    Name(TTensor &&t) : tensor(std::forward<TTensor>(t)) {}                    \
                                                                                \
     template <typename... Indices> auto eval(Indices... js) const {            \
       return expression;                                                       \
@@ -89,41 +93,42 @@ define_unary_template(abs, Abs)
 
 #define define_binary_op(OP, OPName)                                           \
   /* Accepts only tensors of same rank and size */                             \
-  template <size_t Rank, typename T1, typename T2, size_t Size>                \
-  auto operator OP(const TensorExpression<Rank, T1, Size> &in1,                \
-                   const TensorExpression<Rank, T2, Size> &in2) {              \
-    return OPName##Tensor<TensorExpression<Rank, T1, Size>,                    \
-                          TensorExpression<Rank, T2, Size>>(in1, in2);         \
+  template <typename T1, typename T2>                                          \
+  std::enable_if_t<is_tensor_expression<T1>::value &&                          \
+                       is_tensor_expression<T2>::value,                        \
+                   OPName##Tensor<T1, T2>>                                     \
+  operator OP(T1 &&in1, T2 &&in2) {                                            \
+    return OPName##Tensor<T1, T2>(std::forward<T1>(in1),                       \
+                                  std::forward<T2>(in2));                      \
   }                                                                            \
                                                                                \
   /* To avoid ambiguous function calls this version of OP is only visible if   \
    * TScalar's size doesn't match.*/                                           \
-  template <size_t Rank, typename T, typename TScalar, size_t Size>            \
-  typename std::enable_if_t<                                                   \
-      !has_size<TScalar, Size>::value,                                         \
-      OPName##ScalarRight<TensorExpression<Rank, T, Size>, TScalar>>           \
-  operator OP(const TensorExpression<Rank, T, Size> &arr,                      \
-              const TScalar &value) {                                          \
-    return OPName##ScalarRight<TensorExpression<Rank, T, Size>, TScalar>(      \
-        arr, value);                                                           \
+  template <typename T, typename TScalar>                                      \
+  typename std::enable_if_t<is_tensor_expression<T>::value &&                  \
+                                !are_same_size<T, TScalar>::value,             \
+                            OPName##ScalarRight<T, TScalar>>                   \
+  operator OP(T &&arr, TScalar &&value) {                                      \
+    return OPName##ScalarRight<T, TScalar>(std::forward<T>(arr),               \
+                                           std::forward<TScalar>(value));      \
   }                                                                            \
                                                                                \
   /* To avoid ambiguous function calls this version of OP is only visible if   \
    * TScalar's size doesn't match.*/                                           \
-  template <size_t Rank, typename T, typename TScalar, size_t Size>            \
-  typename std::enable_if_t<                                                   \
-      !has_size<TScalar, Size>::value,                                         \
-      OPName##ScalarLeft<TensorExpression<Rank, T, Size>, TScalar>>            \
-  operator OP(const TScalar &value,                                            \
-              const TensorExpression<Rank, T, Size> &arr) {                    \
-    return OPName##ScalarLeft<TensorExpression<Rank, T, Size>, TScalar>(       \
-        arr, value);                                                           \
+  template <typename T, typename TScalar>                                      \
+  typename std::enable_if_t<is_tensor_expression<T>::value &&                  \
+                                !are_same_size<T, TScalar>::value,             \
+                            OPName##ScalarLeft<T, TScalar>>                    \
+  operator OP(TScalar &&value, T &&arr) {                                      \
+    return OPName##ScalarLeft<T, TScalar>(std::forward<T>(arr),                \
+                                          std::forward<TScalar>(value));       \
   }
 
 #define define_unary_function(function, Name)                                  \
-  template <size_t Rank, typename T, size_t Size>                              \
-  auto function(const TensorExpression<Rank, T, Size> &arr) {                  \
-    return Name<TensorExpression<Rank, T, Size>>(arr);                         \
+  template <typename T>                                                        \
+  std::enable_if_t<is_tensor_expression<T>::value, Name<T>> function(          \
+      T &&arr) {                                                               \
+    return Name<T>(std::forward<T>(arr));                                      \
   }
 
     // clang-format off

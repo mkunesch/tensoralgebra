@@ -48,7 +48,10 @@ public:
   Tensor &operator=(const TensorExpression<Rank, T1, Size> &expression);
 
   Tensor(const T &value) { operator=(value); }
-  Tensor &operator=(const T &value) { data.fill(value); }
+  Tensor &operator=(const T &value) {
+    data.fill(value);
+    return *this;
+  }
 
   Tensor(const NestedInitializerList<T, Rank> &list) {
     std::copy(list.begin(), list.end(), data.begin());

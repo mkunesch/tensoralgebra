@@ -8,6 +8,15 @@ namespace tensoralgebra {
 /// make_void is just C++17's std::void - included to be C++14 compatible.
 template <typename...> using make_void = void;
 
+/// Check whether a given template argument is a tensor expression
+template <typename T, typename Helper = void>
+struct is_tensor_expression : public std::false_type {};
+
+template <typename T>
+struct is_tensor_expression<
+    T, make_void<typename std::decay_t<T>::TensorExpressionType>>
+    : public std::true_type {};
+
 /// Compile time check whether the template parameter has a given size
 /** Member "value" is false if the size doesn't match or the template parameter
  * has no size() function defined. Otherwise it is true. */

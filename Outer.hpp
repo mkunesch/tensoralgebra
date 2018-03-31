@@ -22,24 +22,27 @@ template <> struct OuterHelper<0> {
 };
 
 template <typename T1, typename T2>
-class Outer : public TensorExpression<T1::rank() + T2::rank(), Outer<T1, T2>,
-                                      T1::size()> {
-  const T1 &t1;
-  const T2 &t2;
+class Outer : public TensorExpression<std::decay_t<T1>::rank() +
+                                          std::decay_t<T2>::rank(),
+                                      Outer<T1, T2>, std::decay_t<T1>::size()> {
+  T1 t1;
+  T2 t2;
 
 public:
-  Outer(const T1 &t1, const T2 &t2) : t1(t1), t2(t2) {}
+  Outer(T1 &&t1, T2 &&t2)
+      : t1(std::forward<T1>(t1)), t2(std::forward<T2>(t2)) {}
 
   template <typename... Indices> auto eval(Indices... dirs) const {
-    return OuterHelper<T1::rank()>::eval(t1, t2, dirs...);
+    return OuterHelper<std::decay_t<T1>::rank()>::eval(t1, t2, dirs...);
   }
 };
 
-template <size_t Rank1, typename T1, size_t Rank2, typename T2, size_t Size>
-auto outer(const TensorExpression<Rank1, T1, Size> &t1,
-           const TensorExpression<Rank2, T2, Size> &t2) {
-  return Outer<TensorExpression<Rank1, T1, Size>,
-               TensorExpression<Rank2, T2, Size>>(t1, t2);
+template <typename T1, typename T2>
+std::enable_if_t<is_tensor_expression<T1>::value &&
+                     are_same_size<T1, T2>::value,
+                 Outer<T1, T2>>
+outer(T1 &&t1, T2 &&t2) {
+  return Outer<T1, T2>(std::forward<T1>(t1), std::forward<T2>(t2));
 }
 
 } // namespace tensoralgebra
