@@ -1,3 +1,9 @@
+***
+Since tensoralgebra is a testing ground for
+GRChombo (https://github.com/GRChombo/GRChombo),
+it is released under the same license (3-clause BSD).
+***
+
 BSD 3-Clause License
 
 Copyright (c) 2018, Markus Kunesch
