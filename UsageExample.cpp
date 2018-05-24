@@ -28,10 +28,10 @@ int main() {
   TwoTensor tensor1 = unevaluated;
 
   // ... when applying as many indices as given by the rank:
-  auto evaluated = tensor[0][0];
+  auto evaluated = unevaluated[0][0];
 
   // ... but not if the number of supplied indices is smaller than the rank
-  auto unevaluated1 = tensor[0];
+  auto unevaluated1 = unevaluated[0];
 
   // Basic tensor operations for differential geometry are supported
   // e.g. the trace with respect to a given inverse metric

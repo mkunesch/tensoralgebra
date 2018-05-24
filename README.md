@@ -15,7 +15,7 @@ The main features of tensoralgebra are:
   for small values of `size*rank` and makes it possible to overload based on the rank or
   size of a tensor and to check the compatibility of two tensors at compile time.
 * While functions for lowering and raising indices are implemented,
-  the package does not check the index type (e.g. it does not differentiate
+  tensoralgebra does not check the index type (e.g. it does not differentiate
   between a vector and a covector). In my opinion, it is much easier and clearer to do this
   by hand explicitly.
 * The implementation is optimised for small sizes (i.e. for a 4-vector or a 4x4
@@ -23,7 +23,7 @@ The main features of tensoralgebra are:
 * Storing and passing around unevaluated expressions of several terms is allowed and should not
   result in undefined behaviour.
 
-This tensor package is a feasibility study for a better tensor implementation in the
+Tensoralgebra is a feasibility study for a better tensor implementation in the
 numerical general relativity code [GRChombo](https://github.com/GRChombo/GRChombo).
 
 ## Prerequisites and usage example
@@ -63,12 +63,12 @@ when assigning to another tensor
 
 when applying as many indices as given by the rank
 ```
-  auto evaluated = tensor[0][0];
+  auto evaluated = unevaluated[0][0];
 ```
 
 but not if the number of supplied indices is smaller than the rank
 ```
-  auto unevaluated1 = tensor[0];
+  auto unevaluated1 = unevaluated[0];
 ```
 
 Basic tensor operations for differential geometry are supported,
@@ -100,19 +100,19 @@ range-based for loops:
 ```
 
 ## Tests
-The folder `Tests` contains several tests which ensure that
+The tests folder contains several tests which ensure that
 * the operations are correct (even for more complicated expressions with nested
-  functions etc.)
-* evaluation actually takes place lazily, that is nothing is evaluated until
-  it really is necessary and the full expression is known.
+  functions etc.).
+* evaluation takes place lazily, that is nothing is evaluated until
+  it is necessary and the full expression is known.
 * evaluation takes place in the right order, that is component by component in
   row major order. E.g. for a rank-2 expression [0][0] should be evaluated
   completely before starting with [0][1].
 
 ## Performance
-The Benchmark folder includes a benchmark which compares the runtime of a naive
+The benchmark folder includes a benchmark which compares the runtime of a naive
 tensor implementation, an implementation using explicit loops, and the expression
-template implementation provided in this tensoralgebra package.
+template implementation provided in tensoralgebra.
 
 The example output below was obtained with clang-6 and shows that, with a recent
 compiler, the expression template implementation gives the same
