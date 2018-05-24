@@ -68,7 +68,7 @@ public:
 };
 
 /// Operator == for tensor expressions.
-/// The result is immediately evaluated.
+// The result is immediately evaluated.
 template <size_t Rank, typename T1, typename T2, size_t Size>
 bool operator==(const TensorExpression<Rank, T1, Size> &t1,
                 const TensorExpression<Rank, T2, Size> &t2) {
@@ -80,7 +80,7 @@ bool operator==(const TensorExpression<Rank, T1, Size> &t1,
 }
 
 /// Operator != for tensor expressions.
-/// The result is immediately evaluated.
+// The result is immediately evaluated.
 template <size_t Rank, typename T1, typename T2, size_t Size>
 bool operator!=(const TensorExpression<Rank, T1, Size> &t1,
                 const TensorExpression<Rank, T2, Size> &t2) {

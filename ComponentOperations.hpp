@@ -108,8 +108,8 @@ define_unary_template(abs, Abs)
   typename std::enable_if_t<is_tensor_expression<T>::value &&                  \
                                 !are_same_size<T, TScalar>::value,             \
                             OPName##ScalarRight<T, TScalar>>                   \
-  operator OP(T &&arr, TScalar &&value) {                                      \
-    return OPName##ScalarRight<T, TScalar>(std::forward<T>(arr),               \
+  operator OP(T &&tensor, TScalar &&value) {                                   \
+    return OPName##ScalarRight<T, TScalar>(std::forward<T>(tensor),            \
                                            std::forward<TScalar>(value));      \
   }                                                                            \
                                                                                \
@@ -119,16 +119,16 @@ define_unary_template(abs, Abs)
   typename std::enable_if_t<is_tensor_expression<T>::value &&                  \
                                 !are_same_size<T, TScalar>::value,             \
                             OPName##ScalarLeft<T, TScalar>>                    \
-  operator OP(TScalar &&value, T &&arr) {                                      \
-    return OPName##ScalarLeft<T, TScalar>(std::forward<T>(arr),                \
+  operator OP(TScalar &&value, T &&tensor) {                                   \
+    return OPName##ScalarLeft<T, TScalar>(std::forward<T>(tensor),             \
                                           std::forward<TScalar>(value));       \
   }
 
 #define define_unary_function(function, Name)                                  \
   template <typename T>                                                        \
   std::enable_if_t<is_tensor_expression<T>::value, Name<T>> function(          \
-      T &&arr) {                                                               \
-    return Name<T>(std::forward<T>(arr));                                      \
+      T &&tensor) {                                                            \
+    return Name<T>(std::forward<T>(tensor));                                   \
   }
 
     // clang-format off

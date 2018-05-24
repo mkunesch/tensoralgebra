@@ -34,8 +34,8 @@ template <typename T, size_t Size> struct tensor_type_recursion<0, T, Size> {};
 template <size_t Rank, typename T, size_t Size>
 class Tensor : public TensorExpression<Rank, Tensor<Rank, T, Size>, Size> {
 
-  using ContainerType = typename tensor_type_recursion<Rank, T, Size>::type;
-  ContainerType data;
+  using ContainedType = typename tensor_type_recursion<Rank, T, Size>::type;
+  ContainedType data;
 
 public:
   Tensor() = default;
@@ -60,8 +60,8 @@ public:
   static constexpr size_t size() { return Size; }
   static constexpr size_t rank() { return Rank; }
 
-  using iterator = typename ContainerType::iterator;
-  using const_iterator = typename ContainerType::const_iterator;
+  using iterator = typename ContainedType::iterator;
+  using const_iterator = typename ContainedType::const_iterator;
 
   const auto &operator[](size_t i) const { return data[i]; }
 
@@ -134,12 +134,12 @@ operator=(const TensorExpression<Rank, T1, Size> &expression) {
 
 template <size_t Rank, typename T, size_t Size>
 inline std::ostream &operator<<(std::ostream &os,
-                                const TensorExpression<Rank, T, Size> &arr) {
+                                const TensorExpression<Rank, T, Size> &tensor) {
   os << "{";
   for (size_t i = 0; i < Size - 1; ++i) {
-    os << arr[i] << ",";
+    os << tensor[i] << ",";
   }
-  os << arr[Size - 1] << "}"; // No comma after last element
+  os << tensor[Size - 1] << "}"; // No comma after last element
   return os;
 }
 
