@@ -5,19 +5,18 @@ geometry: a multidimensional array of the same size in all directions.
 
 The main features of tensoralgebra are:
 * Operations involving tensors are evaluated lazily to avoid unnecessary
-  temporary tensors and repeated loops. Evaluation takes place only once the final
-  expression is known and is done component by component in row-major order.
+  temporary tensors and repeated loops. Evaluation is done component by
+  component in row-major order once the final expression is known.
 * The most important tensor operations are included; e.g. trace, dot, outer
   product, raising/lowering indices, ...
 * C-style indices (such as `tensor[i][j]`) can be used
-  without a performance penalty. There is no need for a special syntax.
+  without a performance penalty.
 * Size and rank are both fixed at compile time. This makes the code faster
-  for small values of `size*rank` and makes it possible to overload based on the rank or
-  size of a tensor and to check the compatibility of two tensors at compile time.
+  for small values of `size*rank`, makes it possible to overload based on rank or
+  size, and to check the compatibility of two tensors at compile time.
 * While functions for lowering and raising indices are implemented,
   tensoralgebra does not check the index type (e.g. it does not differentiate
-  between a vector and a covector). In my opinion, it is much easier and clearer to do this
-  by hand explicitly.
+  between a vector and a covector). In my opinion, it is much easier to do this by hand.
 * The implementation is optimised for small sizes (i.e. for a 4-vector or a 4x4
   matrix, not for a vector with 100,000 components).
 * Storing and passing around unevaluated expressions of several terms is allowed and should not
